@@ -305,6 +305,8 @@ def TradeLoop(context, settings):
 ## Convert a unicode based float to a real float for us in calculations
 def ConvertUnicodeFloatToFloat( UnicodeFloat ):
 
+    UnicodeFloat = str(UnicodeFloat)
+
     ## I need to use a regular expression
     ## get all the character from after the dot
     position = re.search( '\.', UnicodeFloat)
