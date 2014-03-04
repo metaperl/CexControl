@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+#!/usr/bin/env python#-------------------------------------------------------------------------------
 # Name:       CexControl
 # Purpose:    Automatically add mined coins on Cex.IO to GHS pool
 #
@@ -14,10 +14,12 @@
 from __future__ import print_function
 
 import cexapi
-import re
-import time
 import json
+import re
 import sys
+import time
+import traceback
+
 
 ## just place till P3
 import urllib2
@@ -36,21 +38,21 @@ class CexControl:
         Trading = "GUI"
 
 class Coin:
-    
+
     def __init__(self, Name, Threshold, Reserve):
-        
+
         self.Name = Name
         self.Threshold = Threshold
         self.Reserve = Reserve
-    
+
 
 class Settings:
-    
+
     def __init__(self):
 
         self.BTC = Coin("BTC", 0.00001, 0.00)
         self.NMC = Coin("NMC", 0.00001, 0.00)
-        
+
         self.EfficiencyThreshold = 1.0
 
         self.username    = ""
@@ -76,12 +78,12 @@ class Settings:
                 self.NMC.Threshold = float(LoadedFromFile['NMCThreshold'])
             except:
                 log.Output ("NMC Threshold Setting not present, using default")
-                
+
             try:
                 self.NMC.Reserve = float(LoadedFromFile['NMCReserve'])
             except:
                 log.Output ("NMC Reserve Setting not present, using default")
-                
+
             try:
                 self.BTC.Threshold = float(LoadedFromFile['BTCThreshold'])
             except:
@@ -92,7 +94,7 @@ class Settings:
             except:
                 log.Output ("BTC Reserve Setting not present, using default")
 
-                
+
             try:
                 self.EfficiencyThreshold = float(LoadedFromFile['EfficiencyThreshold'])
             except:
@@ -111,7 +113,7 @@ class Settings:
             self.CreateSettings()
             self.LoadSettings()
 
-        ## Dunno, if I should...        
+        ## Dunno, if I should...
         self.WriteSettings()
 
     def CreateSettings(self):
@@ -229,6 +231,7 @@ def main():
         except:
             log.Output ("Unexpected error:")
             log.Output ( sys.exc_info()[0] )
+            log.Output ( traceback.format_exc() )
             log.Output ("An error occurred, skipping cycle")
 
         log.Output("")
@@ -279,11 +282,11 @@ def TradeLoop(context, settings):
 
     if (TargetCoin[0] == "BTC"):
         if ( arbitrate ):
-            ## We will assume that on arbitrate, we also respect the Reserve            
+            ## We will assume that on arbitrate, we also respect the Reserve
             ReinvestCoinByClass(context, settings.NMC, TargetCoin[0] )
-            
+
         else:
-            if ( settings.HoldCoins == False ):                
+            if ( settings.HoldCoins == False ):
                 ReinvestCoinByClass(context, settings.NMC, TargetCoin[0] )
 
         ReinvestCoinByClass(context, settings.BTC, "GHS" )
@@ -293,7 +296,7 @@ def TradeLoop(context, settings):
             ## We will assume that on arbitrate, we also respect the Reserve
             ReinvestCoinByClass(context, settings.BTC, TargetCoin[0] )
         else:
-            if ( settings.HoldCoins == False ):                
+            if ( settings.HoldCoins == False ):
                 ReinvestCoinByClass(context, settings.BTC, "GHS" )
 
         ReinvestCoinByClass(context, settings.NMC, "GHS" )
@@ -434,18 +437,18 @@ def PrintBalance( Context, CoinName):
 
 ## Holder Class, to reinvest Coin by class
 def ReinvestCoinByClass(Context, Coin, TargetCoin ):
-        
+
     CoinName   = Coin.Name
     Threshold  = Coin.Threshold
-    TargetCoin = TargetCoin 
+    TargetCoin = TargetCoin
 
     Saldo = GetBalance(Context, CoinName)
     InvestableSaldo = Saldo - Coin.Reserve
-    
+
     if ( InvestableSaldo > Threshold ):
         TradeCoin( Context, CoinName, TargetCoin, InvestableSaldo )
 
-    
+
 ## Reinvest a coin
 def ReinvestCoin(Context, CoinName, Threshold, TargetCoin ):
 
